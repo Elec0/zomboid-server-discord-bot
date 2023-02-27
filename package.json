@@ -1,0 +1,27 @@
+{
+  "name": "zomboid-server-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "ngrok": "ngrok http 3000",
+    "djs": "nodemon discord-js-bot.js"
+  },
+  "author": "Elec0",
+  "license": "MIT",
+  "dependencies": {
+    "dedent": "^0.7.0",
+    "discord-interactions": "^3.2.0",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.0",
+    "rcon": "^1.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
