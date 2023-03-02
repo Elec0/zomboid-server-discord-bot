@@ -1,8 +1,6 @@
 //@ts-check
-import dedent from "dedent";
-import { restartHandler } from "../../app.js";
-import { sendRconCommand } from "../handlers/rconHandler.js";
-import { capitalize, DiscordRequest, formatTime, getRandomEmoji } from "../misc/utils.js";
+import { DiscordRequest } from "../misc/utils.js";
+import { handleRestartServer, handleServerStatus, handleTest } from "./commandHandlers.js";
 
 // ** Commands **
 /** @type {Object} */
@@ -24,33 +22,17 @@ export function loadCommands() {
       callback: handleServerStatus
    });
 
+   addCommand({
+      name: "restartserver",
+      description: "Restart the Zomboid server immediately",
+      type: 1,
+      callback: handleRestartServer
+   });
+
    return AllCommands;
 }
-export function handleTest(interaction) {
-   interaction.reply("hello world " + getRandomEmoji());
-}
 
- /**
- */
- export function handleServerStatus(interaction) {
-   let responseData = {};
-   console.log(typeof(interaction));
 
-   sendRconCommand("players", (response) => {
-      responseData["players"] = response;  
-      let toSend = dedent(`== Current Server Status (${new Date().toLocaleString()}) ==
-      Time until next restart: ${formatTime(restartHandler.getTimeUntilRestart())}
-      ${response}`);
-      
-      console.log(`\nSending: ${toSend}`);
-      
-      interaction.reply(toSend);
-      // res.send({
-      //    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      //    data: { content: toSend, },
-      // })
-   });
-}
 // addCommand({
 //    name: "serverstats",
 //    description: "Get the server's full stats",
@@ -89,7 +71,7 @@ export function addCommand({name, description, type = 1, options = [], callback 
 export async function HasGuildCommands(appId, guildId, commands) {
    if (guildId === "' || appId === '") return;
 
-   commands.forEach((c) => HasGuildCommand(appId, guildId, c));
+   Object.entries(commands).forEach((arr) => HasGuildCommand(appId, guildId, arr[1]));
 }
 
 // Checks for a command

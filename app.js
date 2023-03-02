@@ -1,9 +1,9 @@
 //@ts-check
 import "dotenv/config";
-import { AllCommands, loadCommands } from "./app/commands/commands.js";
+import { AllCommands, HasGuildCommands, loadCommands } from "./app/commands/commands.js";
 import { initRcon } from "./app/handlers/rconHandler.js";
 import { RestartHandler } from "./app/handlers/restartHandler.js";
-import { noOP } from "./app/misc/utils.js";
+import { formatTime, noOP } from "./app/misc/utils.js";
 import "dotenv/config";
 // Require the necessary discord.js classes
 import { Client, Events, GatewayIntentBits } from 'discord.js';
@@ -23,16 +23,21 @@ const SERVER_POST_TIME_INTERVAL = 15 * 1000;
 // Restart every 3 hours, tick 1/s
 export let restartHandler = new RestartHandler(3 * 60 * 60, 1);
 
+function connectionEnded(initialRun) {
+   let message = "Attempting new connection in ";
+   if (initialRun) {
+      setTimeout(() => manageRcon(false), SERVER_TIME_TO_RESTART);
+      message += formatTime(SERVER_TIME_TO_RESTART);
+   }
+   else {
+      setTimeout(() => manageRcon(false), SERVER_POST_TIME_INTERVAL);
+      message += formatTime(SERVER_TIME_TO_RESTART);
+   }
+   console.log(message);
+}
+
 // Start up the rcon connection
 function manageRcon(initialRun = true) {
-   let connectionEnded = () => {
-      if (initialRun) {
-         setTimeout(() => manageRcon(false), SERVER_TIME_TO_RESTART);
-      }
-      else {
-         setTimeout(() => manageRcon(false), SERVER_POST_TIME_INTERVAL);
-      }
-   }
    initRcon(
       // Auth callback
       (_) => { // We're connected, start the timer
@@ -40,10 +45,10 @@ function manageRcon(initialRun = true) {
       },
       // End callback - Happens when the server shuts down
       // Wait for some amount of time to try connecting again, then try again every so often
-      (_) => connectionEnded(),
+      (_) => connectionEnded(initialRun),
       noOP, // Response callback
       // Error callback - Happens when server is down and connection is refused
-      (_) => connectionEnded()
+      (_) => connectionEnded(initialRun)
    );
 }
 manageRcon();
@@ -53,6 +58,7 @@ manageRcon();
 // We use 'c' for the event parameter to keep it separate from the already defined 'client'
 client.once(Events.ClientReady, c => {
    console.log(`Ready! Logged in as ${c.user.tag}`);
+   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, AllCommands);
 });
 
 client.on(Events.InteractionCreate, async interaction => {

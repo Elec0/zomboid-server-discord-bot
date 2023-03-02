@@ -2,7 +2,7 @@
 
 import { sendServerMsg } from "../commands/commandHandlers.js";
 import { formatTime } from "../misc/utils.js";
-import { sendRconCommand } from "./rconHandler.js";
+import { getRconConnection, sendRconCommand } from "./rconHandler.js";
 
 export class RestartHandler {
     /**
@@ -15,7 +15,7 @@ export class RestartHandler {
      * Keep track of which thresholds we have already broadcasted.
      * @see {@link ALERT_TIMES}
      */
-    alertTimesBroadcasted = Object.fromEntries(this.ALERT_TIMES.map(x => [x, false]));
+    alertTimesBroadcasted = this._getAlertBroadcasts();
 
     // TODO: Have this write to the disk so it doesn't disappear when the script restarts
     /** @type {number} */
@@ -48,9 +48,12 @@ export class RestartHandler {
     start() {
         console.log("Start restart timer");
         this.isTicking = true;
-        if (!this.timerIntervalObj) {
-            this.timerIntervalObj = setInterval(this.tick.bind(this), this.tickTime);
+        if (this.timerIntervalObj) {
+            clearInterval(this.timerIntervalObj);
         }
+        this.timerIntervalObj = setInterval(this.tick.bind(this), this.tickTime);
+        this.alertTimesBroadcasted = this._getAlertBroadcasts();
+        this.startTime = Date.now();
     }
     /** Stop timer ticking */
     pause() {
@@ -68,7 +71,7 @@ export class RestartHandler {
         let timeSinceStart = Date.now() - this.startTime;
 
         if (timeSinceStart >= this.restartInterval) {
-            // sendServerMsg("Server restarting");
+            sendServerMsg("Server restarting");
             this.sendRestart();
         }
         else {
@@ -83,10 +86,9 @@ export class RestartHandler {
                 continue;
             }
             // We should broadcast the message now
-            sendServerMsg(`Sever will restart in ${formatTime(time)}`);
             this.alertTimesBroadcasted[time] = true;
-            
             console.log(this.alertTimesBroadcasted);
+            sendServerMsg(`Sever will restart in ${formatTime(time)}`);
 
             // Only send 1 message per loop in case of weirdness
             break;
@@ -106,8 +108,12 @@ export class RestartHandler {
 
     sendRestart() {
         console.log("Send quit command");
-        // Hang out for a bit
         sendRconCommand("quit");
+        getRconConnection().disconnect();
         this.stop();
+    }
+
+    _getAlertBroadcasts() {
+        return Object.fromEntries(this.ALERT_TIMES.map(x => [x, false]));
     }
 }

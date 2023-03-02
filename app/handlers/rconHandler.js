@@ -1,7 +1,7 @@
 //@ts-check
 import "dotenv/config";
+import Rcon from "rcon";
 import { noOP } from "../misc/utils.js";
-import {Rcon} from "rcon"
 
 
 let connectionInfo = {
@@ -15,9 +15,10 @@ const OPTIONS = {
 
 /** @type {Array<Function>} */
 let rconResponseQueue = [];
+/** @type {Rcon} */
 let conn;
 
-let noOpRconCallback = (msg) => { };
+let noOpRconCallback = (_) => { };
 
 export function initRcon(authCallback = noOpRconCallback, endCallback = noOpRconCallback,
    responseCallback = noOpRconCallback, errorCallback = noOpRconCallback) {
@@ -84,4 +85,8 @@ export function isRconConnected() {
  */
 export function isRconAuthed() {
    return connectionInfo.isConnected && connectionInfo.isAuthed;
+}
+
+export function getRconConnection() {
+   return conn;
 }

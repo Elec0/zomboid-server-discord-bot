@@ -2,6 +2,13 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { verifyKey } from 'discord-interactions';
+import { PermissionsBitField } from 'discord.js';
+
+
+/** @param {import('discord.js').MessageComponentInteraction} interaction */
+export function memberIsAdmin(interaction) {
+   return interaction.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
+}
 
 export function VerifyDiscordRequest(clientKey) {
    return function (req, res, buf, encoding) {
@@ -58,7 +65,7 @@ export function capitalize(str) {
 */
 export function formatTime(time) {
    let ms = time;
-   
+
    let hour = Math.trunc(ms / (3600 * 1000));
    ms = ms % (3600 * 1000); // seconds remaining after extracting hours
    let min = Math.trunc(ms / (60 * 1000));
@@ -66,10 +73,10 @@ export function formatTime(time) {
    let sec = Math.trunc(ms / 1000);
    ms = Math.round(ms % 1000); // ms remaining after extracting seconds
    return (hour != 0 ? `${hour}h` : "")
-   + (min != 0 ? `${min}m` : "")
-   + (sec != 0 ? `${sec}s` : "");
+      + (min != 0 ? `${min}m` : "")
+      + (sec != 0 ? `${sec}s` : "");
    //+ (`${ms}ms`);
 }
 
 
-export function noOP() {};
+export function noOP() { };
